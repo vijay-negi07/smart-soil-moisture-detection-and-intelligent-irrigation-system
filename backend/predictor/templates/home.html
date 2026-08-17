@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoilSense AI - Smart Irrigation Assistant</title>
+
+    <!-- CSS File Link -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌱 SoilSense AI</h1>
+            <p>Smart Irrigation Assistant • AI-Powered Soil Analysis</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <i>📸</i>
+                        <h3>Upload Soil Image</h3>
+                        <p>Click to browse or drag & drop</p>
+                        <p style="font-size: 0.9em; color: #8d9b92; margin-top: 15px;">
+                            Supports: JPG, PNG, JPEG (Max 10MB)
+                        </p>
+                    </div>
+
+                    <!-- File Info -->
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-icon">📷</div>
+                        <div class="file-details">
+                            <div class="file-name" id="fileName"></div>
+                            <div class="file-size" id="fileSize"></div>
+                        </div>
+                    </div>
+
+                    <!-- File Input -->
+                    <input type="file" name="image" id="imageInput" accept="image/*" required>
+
+                    <!-- Loading Spinner -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Analyzing Soil Moisture...</p>
+                        <p style="font-size: 0.9em; color: #666;">Please wait a moment</p>
+                    </div>
+
+                    <!-- Predict Button -->
+                    <button type="submit" class="btn-predict" id="predictBtn" disabled>
+                        🔍 Analyze Soil Moisture
+                    </button>
+                </div>
+            </form>
+
+            <!-- Results Section -->
+            {% if prediction %}
+            <div class="result-card">
+                <div class="result-header">
+                    <div
+                        class="prediction-badge 
+                        {% if prediction == 'dry' %}dry{% elif prediction == 'normal' %}normal{% elif prediction == 'wet' %}wet{% endif %}">
+                        {{ prediction|upper }} SOIL
+                    </div>
+                    <div class="confidence-large">
+                        <span>📊</span> {{ confidence|floatformat:3 }}
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💧</div>
+                        <div class="stat-label">Moisture Level</div>
+                        <div class="stat-value">
+                            {% if prediction == 'dry' %}
+                            0-30%
+                            {% elif prediction == 'normal' %}
+                            40-60%
+                            {% elif prediction == 'wet' %}
+                            70-100%
+                            {% else %}
+                            --
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value">
+                            {% if confidence %}
+                            {{ confidence|floatformat:2 }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                {% if recommendation %}
+                <div class="recommendation-box 
+                    {% if 'confidence' in recommendation %}warning
+                    {% elif 'irrigation' in recommendation or 'Start' in recommendation %}success
+                    {% elif 'optimal' in recommendation %}info
+                    {% elif 'Stop' in recommendation %}warning
+                    {% endif %}">
+                    <span style="font-size: 2em;">
+                        {% if 'confidence' in recommendation %}⚠️
+                        {% elif 'irrigation' in recommendation or 'Start' in recommendation %}💧
+                        {% elif 'optimal' in recommendation %}🌤️
+                        {% elif 'Stop' in recommendation %}🚫
+                        {% endif %}
+                    </span>
+                    <span>{{ recommendation }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Low Confidence Warning -->
+            {% if prediction and confidence %}
+            {% if confidence < 0.6 %} <div class="error-message">
+                ⚠️ <strong>Low Confidence Detected</strong><br>
+                Please ensure good lighting and clear image focus for better results.
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    </div>
+
+    <!-- JavaScript File Link -->
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>
